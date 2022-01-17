@@ -1,0 +1,28 @@
+node 
+    {
+            stage("Checkout Code")
+            
+            {
+            //checkout code from git hub repository
+              git credentialsId: '25b7debf-e225-4724-9666-b748f3de48b4', url: 'https://github.com/pradeepkumar4tech/currency-exchange.git'
+            }
+            stage("Maven Clean")
+            {
+                def mavenHome= tool name :'maven-3' ,type:'maven' 
+                def mavenCMD="${mavenHome}/bin/mvn"
+                bat "${mavenCMD} clean package"
+            }
+            stage("Create Docker Build")
+            {
+                bat 'docker build -f DockerFile -t pradeepkumar4tech/currency-exchange:0.0.1 .'
+            }
+            stage("Push Image to Docker Hub")
+            {
+                withCredentials([string(credentialsId: 'docker-cred', variable: 'dockerHubCred')]) {
+                bat "docker login -u pradeepkumar4tech -p ${dockerHubCred}"
+                }
+                
+               bat 'docker push pradeepkumar4tech/currency-exchange:0.0.1'
+            }
+        
+    }
